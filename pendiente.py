@@ -5,26 +5,19 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # Función para inicializar la gráfica vacía
 def inicializar_grafica():
-    # Limpiar la figura anterior si existe
     for widget in frame_grafica.winfo_children():
         widget.destroy()
 
-    # Crear la figura en la misma ventana
     global fig, ax
     fig, ax = plt.subplots(figsize=(8, 6))
-
-    # Configurar la gráfica vacía con valores base de -999 a 999
     ax.set_title("Gráfica del Método DDA")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.grid(True)
-    ax.set_xlim(-999, 999)  # Límites para el eje X de -999 a 999
-    ax.set_ylim(-999, 999)  # Límites para el eje Y de -999 a 999
-
-    # Establecer la relación de aspecto igual para que X y Y sean proporcionales
+    ax.set_xlim(-999, 999)
+    ax.set_ylim(-999, 999)
     ax.set_aspect('equal', 'box')
 
-    # Integrar la gráfica en la interfaz Tkinter
     global canvas
     canvas = FigureCanvasTkAgg(fig, master=frame_grafica)
     canvas.draw()
@@ -92,20 +85,25 @@ def calcular_y_graficar():
         canvas.draw()
 
         # Mostrar la tabla DDA en la interfaz Tkinter
-        for widget in frame_tabla.winfo_children():
-            widget.destroy()
-
-        columnas = ['Paso', 'X', 'Y']
-        tabla_texto = tk.Text(frame_tabla, height=10, width=30, font=("Arial", 10))
-        tabla_texto.insert(tk.END, f"{'Paso':<6}{'X':<10}{'Y':<10}\n")
-        tabla_texto.insert(tk.END, f"{'-'*26}\n")
-        for paso, x_val, y_val in zip(pasos_lista, x_lista, y_lista):
-            tabla_texto.insert(tk.END, f"{paso:<6}{x_val:<10}{y_val:<10}\n")
-        tabla_texto.config(state='disabled')
-        tabla_texto.pack()
+        mostrar_tabla_dda(pasos_lista, x_lista, y_lista)
 
     except ValueError:
         messagebox.showerror("Error", "Por favor, ingresa valores numéricos válidos.")
+
+# Función para mostrar la tabla DDA
+def mostrar_tabla_dda(pasos_lista, x_lista, y_lista):
+    # Limpiar el frame de la tabla
+    for widget in frame_tabla.winfo_children():
+        widget.destroy()
+
+    # Crear un widget Text para mostrar la tabla
+    tabla_texto = tk.Text(frame_tabla, height=30, width=20, font=("Arial", 14))
+    tabla_texto.insert(tk.END, f"{'Paso':<6}{'X':<10}{'Y':<10}\n")
+    tabla_texto.insert(tk.END, f"{'-'*26}\n")
+    for paso, x_val, y_val in zip(pasos_lista, x_lista, y_lista):
+        tabla_texto.insert(tk.END, f"{paso:<6}{x_val:<10}{y_val:<10}\n")
+    tabla_texto.config(state='disabled')
+    tabla_texto.pack()
 
 # Función para limpiar la gráfica
 def limpiar_grafica():
@@ -141,77 +139,182 @@ def zoom_manual():
     except ValueError:
         messagebox.showerror("Error", "Por favor, ingresa valores numéricos válidos para el zoom.")
 
+# Función para mostrar la pantalla de inicio
+def mostrar_pantalla_inicio():
+    # Ocultar otros frames
+    frame_trazado.pack_forget()
+    frame_opciones.pack_forget()
+    frame_grafica.pack_forget()
+    frame_linea_recta.pack_forget()
+
+    # Mostrar pantalla de inicio
+    frame_inicio.pack(expand=True, fill='both')
+
+# Función para mostrar el menú de trazado
+def mostrar_menu_trazado():
+    frame_inicio.pack_forget()
+    frame_opciones.pack_forget()
+    frame_grafica.pack_forget()
+    frame_linea_recta.pack_forget()
+    frame_trazado.pack(expand=True, fill='both')
+
+# Función para mostrar el menú de opciones
+def mostrar_menu_opciones():
+    frame_inicio.pack_forget()
+    frame_trazado.pack_forget()
+    frame_grafica.pack_forget()
+    frame_linea_recta.pack_forget()
+    frame_opciones.pack(expand=True, fill='both')
+
+# Función para mostrar la interfaz de línea recta
+def mostrar_linea_recta():
+    frame_inicio.pack_forget()
+    frame_trazado.pack_forget()
+    frame_opciones.pack_forget()
+    frame_grafica.pack(side='right', expand=True, fill='both')
+    frame_linea_recta.pack(side='left', fill='both')  # Asegurar que el frame de la línea recta se expanda
+
+# Función para configurar el tamaño de la pantalla
+def configurar_tamano_pantalla():
+    try:
+        ancho = int(entry_ancho.get())
+        alto = int(entry_alto.get())
+        root.geometry(f"{ancho}x{alto}")
+    except ValueError:
+        messagebox.showerror("Error", "Por favor, ingresa valores numéricos válidos.")
+
+# Función para cambiar la resolución a HD (1280x720)
+def cambiar_resolucion_hd():
+    root.geometry("1280x720")
+
+# Función para cambiar la resolución a Full HD (1920x1080)
+def cambiar_resolucion_full_hd():
+    root.geometry("1920x1080")
+
+# Función para cambiar la resolución a 2K (2560x1440)
+def cambiar_resolucion_2k():
+    root.geometry("2560x1440")
+
+# Función para cambiar la resolución a 4K (3840x2160)
+def cambiar_resolucion_4k():
+    root.geometry("3840x2160")
+
+# Función para salir de la aplicación
+def salir():
+    root.destroy()
+
 # Configuración de la ventana principal
 root = tk.Tk()
-root.title("Método DDA - Cálculo de Pendiente y Gráfica")
+root.title("Aplicación de Gráficos")
 root.state('zoomed')  # Pantalla completa
 
-# Crear marcos para la disposición
-frame_izquierda = tk.Frame(root, padx=10, pady=10)
-frame_izquierda.pack(side='left', fill='y')
+# Frame de inicio
+frame_inicio = tk.Frame(root)
+tk.Label(frame_inicio, text="Pantalla de Inicio", font=("Arial", 16)).pack(pady=20)
+tk.Button(frame_inicio, text="1. Selección de Trazado", command=mostrar_menu_trazado, width=20).pack(pady=10)
+tk.Button(frame_inicio, text="2. Opciones", command=mostrar_menu_opciones, width=20).pack(pady=10)
+tk.Button(frame_inicio, text="3. Salir", command=salir, width=20).pack(pady=10)
 
-frame_tabla = tk.Frame(frame_izquierda, pady=10)
-frame_tabla.pack(side='bottom', fill='x')
+# Frame de selección de trazado
+frame_trazado = tk.Frame(root)
+tk.Label(frame_trazado, text="Selección de Trazado", font=("Arial", 16)).pack(pady=20)
+tk.Button(frame_trazado, text="1. Línea Recta", command=mostrar_linea_recta, width=20).pack(pady=10)
+tk.Button(frame_trazado, text="2. Triángulo", command=lambda: messagebox.showinfo("Info", "Triángulo seleccionado"), width=20).pack(pady=10)
+tk.Button(frame_trazado, text="3. Círculo", command=lambda: messagebox.showinfo("Info", "Círculo seleccionado"), width=20).pack(pady=10)
+tk.Button(frame_trazado, text="4. Regresar", command=mostrar_pantalla_inicio, width=20).pack(pady=10)
 
+# Frame de opciones
+frame_opciones = tk.Frame(root)
+tk.Label(frame_opciones, text="Opciones", font=("Arial", 16)).pack(pady=20)
+
+# Botones para cambiar la resolución
+tk.Label(frame_opciones, text="Cambiar Resolución:", font=("Arial", 12)).pack(pady=5)
+tk.Button(frame_opciones, text="HD (1280x720)", command=cambiar_resolucion_hd, width=20).pack(pady=5)
+tk.Button(frame_opciones, text="Full HD (1920x1080)", command=cambiar_resolucion_full_hd, width=20).pack(pady=5)
+tk.Button(frame_opciones, text="2K (2560x1440)", command=cambiar_resolucion_2k, width=20).pack(pady=5)
+tk.Button(frame_opciones, text="4K (3840x2160)", command=cambiar_resolucion_4k, width=20).pack(pady=5)
+
+# Entradas de datos para el tamaño manual
+tk.Label(frame_opciones, text="Tamaño Manual:", font=("Arial", 12)).pack(pady=10)
+tk.Label(frame_opciones, text="Ancho de pantalla:").pack()
+entry_ancho = tk.Entry(frame_opciones, width=10)
+entry_ancho.pack()
+tk.Label(frame_opciones, text="Alto de pantalla:").pack()
+entry_alto = tk.Entry(frame_opciones, width=10)
+entry_alto.pack()
+tk.Button(frame_opciones, text="Aplicar", command=configurar_tamano_pantalla, width=20).pack(pady=10)
+
+# Botón de regresar
+tk.Button(frame_opciones, text="Regresar", command=mostrar_pantalla_inicio, width=20).pack(pady=10)
+
+# Frame de línea recta
+frame_linea_recta = tk.Frame(root, padx=10, pady=10)
+tk.Label(frame_linea_recta, text="Línea Recta - Método DDA", font=("Arial", 12, "bold")).pack(pady=5)
+
+# Entradas de datos para la línea recta
+entry_xa = tk.Entry(frame_linea_recta, width=10)
+tk.Label(frame_linea_recta, text="Xa:").pack()
+entry_xa.pack()
+
+entry_ya = tk.Entry(frame_linea_recta, width=10)
+tk.Label(frame_linea_recta, text="Ya:").pack()
+entry_ya.pack()
+
+entry_xb = tk.Entry(frame_linea_recta, width=10)
+tk.Label(frame_linea_recta, text="Xb:").pack()
+entry_xb.pack()
+
+entry_yb = tk.Entry(frame_linea_recta, width=10)
+tk.Label(frame_linea_recta, text="Yb:").pack()
+entry_yb.pack()
+
+# Botón de cálculo
+tk.Button(frame_linea_recta, text="Calcular y Graficar", command=calcular_y_graficar, bg="green", fg="white").pack(pady=10)
+
+# Resultado de la pendiente
+label_resultado = tk.Label(frame_linea_recta, text="Pendiente (m): ", font=("Arial", 12))
+label_resultado.pack(pady=5)
+
+# Etiqueta para mostrar las coordenadas del mouse
+label_coordenadas = tk.Label(frame_linea_recta, text="Coordenadas: ", font=("Arial", 10))
+label_coordenadas.pack(pady=5)
+
+# Campos de entrada para el zoom manual
+tk.Label(frame_linea_recta, text="Zoom Manual", font=("Arial", 12, "bold")).pack(pady=10)
+
+tk.Label(frame_linea_recta, text="Limite X Min:").pack()
+entry_lim_x_min = tk.Entry(frame_linea_recta, width=10)
+entry_lim_x_min.pack()
+
+tk.Label(frame_linea_recta, text="Limite X Max:").pack()
+entry_lim_x_max = tk.Entry(frame_linea_recta, width=10)
+entry_lim_x_max.pack()
+
+tk.Label(frame_linea_recta, text="Limite Y Min:").pack()
+entry_lim_y_min = tk.Entry(frame_linea_recta, width=10)
+entry_lim_y_min.pack()
+
+tk.Label(frame_linea_recta, text="Limite Y Max:").pack()
+entry_lim_y_max = tk.Entry(frame_linea_recta, width=10)
+entry_lim_y_max.pack()
+
+# Botón de zoom manual
+tk.Button(frame_linea_recta, text="Aplicar Zoom", command=zoom_manual, bg="blue", fg="white").pack(pady=10)
+
+# Botón de limpieza
+tk.Button(frame_linea_recta, text="Limpiar Gráfica", command=limpiar_grafica, bg="red", fg="white").pack(pady=10)
+
+# Frame de gráfica
 frame_grafica = tk.Frame(root, padx=10, pady=10, bg='white')
-frame_grafica.pack(side='right', expand=True, fill='both')
+
+# Frame de tabla
+frame_tabla = tk.Frame(frame_linea_recta, pady=10)
+frame_tabla.pack(fill='both', expand=True)  # Asegurar que el frame de la tabla esté visible
 
 # Inicializar la gráfica vacía
 inicializar_grafica()
 
-# Entradas de datos
-tk.Label(frame_izquierda, text="Ingrese los valores:", font=("Arial", 12, "bold")).pack(pady=5)
-
-entry_xa = tk.Entry(frame_izquierda, width=10)
-tk.Label(frame_izquierda, text="Xa:").pack()
-entry_xa.pack()
-
-entry_ya = tk.Entry(frame_izquierda, width=10)
-tk.Label(frame_izquierda, text="Ya:").pack()
-entry_ya.pack()
-
-entry_xb = tk.Entry(frame_izquierda, width=10)
-tk.Label(frame_izquierda, text="Xb:").pack()
-entry_xb.pack()
-
-entry_yb = tk.Entry(frame_izquierda, width=10)
-tk.Label(frame_izquierda, text="Yb:").pack()
-entry_yb.pack()
-
-# Botón de cálculo
-tk.Button(frame_izquierda, text="Calcular y Graficar", command=calcular_y_graficar, bg="green", fg="white").pack(pady=10)
-
-# Resultado de la pendiente
-label_resultado = tk.Label(frame_izquierda, text="Pendiente (m): ", font=("Arial", 12))
-label_resultado.pack(pady=5)
-
-# Etiqueta para mostrar las coordenadas del mouse
-label_coordenadas = tk.Label(frame_izquierda, text="Coordenadas: ", font=("Arial", 10))
-label_coordenadas.pack(pady=5)
-
-# Campos de entrada para el zoom manual
-tk.Label(frame_izquierda, text="Zoom Manual", font=("Arial", 12, "bold")).pack(pady=10)
-
-tk.Label(frame_izquierda, text="Limite X Min:").pack()
-entry_lim_x_min = tk.Entry(frame_izquierda, width=10)
-entry_lim_x_min.pack()
-
-tk.Label(frame_izquierda, text="Limite X Max:").pack()
-entry_lim_x_max = tk.Entry(frame_izquierda, width=10)
-entry_lim_x_max.pack()
-
-tk.Label(frame_izquierda, text="Limite Y Min:").pack()
-entry_lim_y_min = tk.Entry(frame_izquierda, width=10)
-entry_lim_y_min.pack()
-
-tk.Label(frame_izquierda, text="Limite Y Max:").pack()
-entry_lim_y_max = tk.Entry(frame_izquierda, width=10)
-entry_lim_y_max.pack()
-
-# Botón de zoom manual
-tk.Button(frame_izquierda, text="Aplicar Zoom", command=zoom_manual, bg="blue", fg="white").pack(pady=10)
-
-# Botón de limpieza
-tk.Button(frame_izquierda, text="Limpiar Gráfica", command=limpiar_grafica, bg="red", fg="white").pack(pady=10)
+# Mostrar pantalla de inicio al iniciar
+mostrar_pantalla_inicio()
 
 root.mainloop()
