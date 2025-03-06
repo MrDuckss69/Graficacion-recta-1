@@ -211,7 +211,6 @@ def mostrar_tablas_octantes(octantes, P0):
         tabla_texto.pack(side='top', padx=10, pady=10)
         return frame_octante  # Devuelves el frame completo con la tabla y el botón
 
-
     # Crear un frame para los primeros 4 octantes
     frame_arriba = tk.Frame(frame_tablas)
     frame_arriba.pack(side='top', fill='both', expand=True)
@@ -624,7 +623,6 @@ tk.Button(frame_linea_recta, text="Limpiar Gráfica", command=limpiar_grafica, b
 # Botón para regresar al menú
 tk.Button(frame_linea_recta, text="Regresar al Menú", command=mostrar_pantalla_inicio, bg="gray", fg="white").pack(pady=10)
 
-
 # Frame de tabla para la línea recta
 frame_tabla = tk.Frame(frame_linea_recta, pady=10)
 frame_tabla.pack(fill='both', expand=True)
@@ -818,7 +816,6 @@ tk.Button(frame_circulo, text="Regresar al Menú", command=mostrar_pantalla_inic
 
 # Frame de gráfica
 frame_grafica = tk.Frame(root, padx=10, pady=10, bg='white')
-
 
 # Inicializar la gráfica vacía
 inicializar_grafica()
