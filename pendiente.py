@@ -89,7 +89,7 @@ def calcular_y_graficar():
 
     except ValueError:
         messagebox.showerror("Error", "Por favor, ingresa valores numéricos válidos.")
-
+                
 # Función para mostrar la tabla DDA
 def mostrar_tabla_dda(pasos_lista, x_lista, y_lista):
     # Limpiar el frame de la tabla
@@ -97,7 +97,7 @@ def mostrar_tabla_dda(pasos_lista, x_lista, y_lista):
         widget.destroy()
 
     # Crear un widget Text para mostrar la tabla
-    tabla_texto = tk.Text(frame_tabla, height=30, width=15, font=("Arial", 14))
+    tabla_texto = tk.Text(frame_tabla, height=20, width=20, font=("Arial", 12))
     tabla_texto.insert(tk.END, f"{'Paso':<6}{'X':<10}{'Y':<10}\n")
     tabla_texto.insert(tk.END, f"{'-'*26}\n")
     for paso, x_val, y_val in zip(pasos_lista, x_lista, y_lista):
@@ -105,6 +105,112 @@ def mostrar_tabla_dda(pasos_lista, x_lista, y_lista):
     tabla_texto.config(state='disabled')
     tabla_texto.pack()
 
+# Función para calcular y graficar un círculo usando el método del punto medio
+def calcular_y_graficar_circulo():
+    try:
+        # Obtener los valores de entrada
+        xc = int(entry_xc.get())
+        yc = int(entry_yc.get())
+        r = int(entry_radio.get())
+
+        # Limpiar la gráfica actual
+        ax.cla()
+        ax.set_title("Círculo - Método del Punto Medio")
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.grid(True)
+        ax.set_aspect('equal', 'box')
+
+        # Inicializar listas para almacenar los puntos de cada octante
+        octantes = [[] for _ in range(8)]
+        colores = ['red', 'green', 'blue', 'orange', 'purple', 'brown', 'pink', 'gray']
+
+        # Algoritmo del Punto Medio para la Circunferencia
+        x = 0
+        y = r
+        P = 1 - r  # Parámetro de decisión inicial
+
+        while x <= y:
+            # Almacenar los puntos en cada octante
+            octantes[0].append((xc + x, yc + y))
+            octantes[1].append((xc + y, yc + x))
+            octantes[2].append((xc + y, yc - x))
+            octantes[3].append((xc + x, yc - y))
+            octantes[4].append((xc - x, yc - y))
+            octantes[5].append((xc - y, yc - x))
+            octantes[6].append((xc - y, yc + x))
+            octantes[7].append((xc - x, yc + y))
+
+            # Actualizar el parámetro de decisión
+            if P < 0:
+                P += 2 * x + 3
+            else:
+                P += 2 * (x - y) + 5
+                y -= 1
+            x += 1
+
+        # Dibujar los puntos en la gráfica y rellenar cada octante
+        for i, octante in enumerate(octantes):
+            x_vals = [p[0] for p in octante]
+            y_vals = [p[1] for p in octante]
+            ax.plot(x_vals, y_vals, marker='o', markersize=3, linestyle='None', color=colores[i])
+            ax.fill([xc] + x_vals, [yc] + y_vals, color=colores[i], alpha=0.3)  # Rellenar el octante
+
+        # Ajustar los límites de la gráfica
+        ax.set_xlim(xc - r - 10, xc + r + 10)
+        ax.set_ylim(yc - r - 10, yc + r + 10)
+
+        # Redibujar la gráfica
+        canvas.draw()
+
+        # Mostrar las tablas de los octantes
+        mostrar_tablas_octantes(octantes, P)
+
+    except ValueError:
+        messagebox.showerror("Error", "Por favor, ingresa valores numéricos válidos.")
+
+# Función para mostrar las tablas de los octantes
+def mostrar_tablas_octantes(octantes, P0):
+    # Limpiar el frame de la tabla
+    for widget in frame_tabla_circulo.winfo_children():
+        widget.destroy()
+
+    # Crear un frame para las tablas
+    frame_tablas = tk.Frame(frame_tabla_circulo)
+    frame_tablas.pack(fill='both', expand=True)
+
+    # Función para crear una tabla
+    def crear_tabla(frame, datos, titulo, P0):
+        tabla_texto = tk.Text(frame, height=15, width=13, font=("Arial", 12))
+        tabla_texto.insert(tk.END, f"{titulo}\n")
+        tabla_texto.insert(tk.END, f"P0 = {P0}\n")  # Mostrar P0
+        tabla_texto.insert(tk.END, f"{'X':<10}{'Y':<10}\n")
+        tabla_texto.insert(tk.END, f"{'-'*20}\n")
+        for i in range(0, len(datos), 4):  # Mostrar 4 puntos por fila
+            for x, y in datos[i:i+4]:
+                tabla_texto.insert(tk.END, f"{x:<10}{y:<10}\n")
+            tabla_texto.insert(tk.END, f"{'-'*20}\n")
+        tabla_texto.config(state='disabled')
+        return tabla_texto
+
+    # Crear un frame para los primeros 4 octantes
+    frame_arriba = tk.Frame(frame_tablas)
+    frame_arriba.pack(side='top', fill='both', expand=True)
+
+    # Crear un frame para los últimos 4 octantes
+    frame_abajo = tk.Frame(frame_tablas)
+    frame_abajo.pack(side='bottom', fill='both', expand=True)
+
+    # Mostrar los primeros 4 octantes
+    for i in range(4):
+        tabla = crear_tabla(frame_arriba, octantes[i], f"Octante {i + 1}", P0)
+        tabla.pack(side='left', padx=10, pady=10)
+
+    # Mostrar los últimos 4 octantes
+    for i in range(4, 8):
+        tabla = crear_tabla(frame_abajo, octantes[i], f"Octante {i + 1}", P0)
+        tabla.pack(side='left', padx=10, pady=10)
+        
 # Función para calcular y graficar un triángulo relleno
 def calcular_y_graficar_triangulo():
     try:
@@ -227,6 +333,10 @@ def limpiar_grafica():
     # Redibujar la gráfica vacía
     canvas.draw()
 
+    # Limpiar las tablas de los octantes
+    for widget in frame_tabla_circulo.winfo_children():
+        widget.destroy()
+
 # Función para hacer zoom manual
 def zoom_manual():
     try:
@@ -245,7 +355,7 @@ def zoom_manual():
 
     except ValueError:
         messagebox.showerror("Error", "Por favor, ingresa valores numéricos válidos para el zoom.")
-
+        
 # Función para hacer zoom manual en el triángulo
 def zoom_manual_triangulo():
     try:
@@ -273,6 +383,7 @@ def mostrar_pantalla_inicio():
     frame_grafica.pack_forget()
     frame_linea_recta.pack_forget()
     frame_triangulo.pack_forget()
+    frame_circulo.pack_forget()
 
     # Mostrar pantalla de inicio
     frame_inicio.pack(expand=True, fill='both')
@@ -284,6 +395,7 @@ def mostrar_menu_trazado():
     frame_grafica.pack_forget()
     frame_linea_recta.pack_forget()
     frame_triangulo.pack_forget()
+    frame_circulo.pack_forget()
     frame_trazado.pack(expand=True, fill='both')
 
 # Función para mostrar el menú de opciones
@@ -293,6 +405,7 @@ def mostrar_menu_opciones():
     frame_grafica.pack_forget()
     frame_linea_recta.pack_forget()
     frame_triangulo.pack_forget()
+    frame_circulo.pack_forget()
     frame_opciones.pack(expand=True, fill='both')
 
 # Función para mostrar la interfaz de línea recta
@@ -301,6 +414,7 @@ def mostrar_linea_recta():
     frame_trazado.pack_forget()
     frame_opciones.pack_forget()
     frame_triangulo.pack_forget()
+    frame_circulo.pack_forget()
     frame_grafica.pack(side='right', expand=True, fill='both')
     frame_linea_recta.pack(side='left', fill='both')
 
@@ -310,28 +424,19 @@ def mostrar_triangulo():
     frame_trazado.pack_forget()
     frame_opciones.pack_forget()
     frame_linea_recta.pack_forget()
+    frame_circulo.pack_forget()
     frame_grafica.pack(side='right', expand=True, fill='both')
     frame_triangulo.pack(side='left', fill='both')
 
-# Función para cambiar la resolución a HD (1280x720)
-def cambiar_resolucion_hd():
-    root.geometry("1280x720")
-
-# Función para cambiar la resolución a Full HD (1920x1080)
-def cambiar_resolucion_full_hd():
-    root.geometry("1920x1080")
-
-# Función para cambiar la resolución a 2K (2560x1440)
-def cambiar_resolucion_2k():
-    root.geometry("2560x1440")
-
-# Función para cambiar la resolución a 4K (3840x2160)
-def cambiar_resolucion_4k():
-    root.geometry("3840x2160")
-
-# Función para salir de la aplicación
-def salir():
-    root.destroy()
+# Función para mostrar la interfaz de círculo
+def mostrar_circulo():
+    frame_inicio.pack_forget()
+    frame_trazado.pack_forget()
+    frame_opciones.pack_forget()
+    frame_linea_recta.pack_forget()
+    frame_triangulo.pack_forget()
+    frame_grafica.pack(side='right', expand=True, fill='both')
+    frame_circulo.pack(side='left', fill='both')
 
 # Configuración de la ventana principal
 root = tk.Tk()
@@ -343,14 +448,14 @@ frame_inicio = tk.Frame(root)
 tk.Label(frame_inicio, text="Pantalla de Inicio", font=("Arial", 16)).pack(pady=20)
 tk.Button(frame_inicio, text="1. Selección de Trazado", command=mostrar_menu_trazado, width=20).pack(pady=10)
 tk.Button(frame_inicio, text="2. Opciones", command=mostrar_menu_opciones, width=20).pack(pady=10)
-tk.Button(frame_inicio, text="3. Salir", command=salir, width=20).pack(pady=10)
+tk.Button(frame_inicio, text="3. Salir", command=root.destroy, width=20).pack(pady=10)
 
 # Frame de selección de trazado
 frame_trazado = tk.Frame(root)
 tk.Label(frame_trazado, text="Selección de Trazado", font=("Arial", 16)).pack(pady=20)
 tk.Button(frame_trazado, text="1. Línea Recta", command=mostrar_linea_recta, width=20).pack(pady=10)
 tk.Button(frame_trazado, text="2. Triángulo", command=mostrar_triangulo, width=20).pack(pady=10)
-tk.Button(frame_trazado, text="3. Círculo", command=lambda: messagebox.showinfo("Info", "Círculo seleccionado"), width=20).pack(pady=10)
+tk.Button(frame_trazado, text="3. Círculo", command=mostrar_circulo, width=20).pack(pady=10)
 tk.Button(frame_trazado, text="4. Regresar", command=mostrar_pantalla_inicio, width=20).pack(pady=10)
 
 # Frame de opciones
@@ -359,10 +464,10 @@ tk.Label(frame_opciones, text="Opciones", font=("Arial", 16)).pack(pady=20)
 
 # Botones para cambiar la resolución
 tk.Label(frame_opciones, text="Cambiar Resolución:", font=("Arial", 12)).pack(pady=5)
-tk.Button(frame_opciones, text="HD (1280x720)", command=cambiar_resolucion_hd, width=20).pack(pady=5)
-tk.Button(frame_opciones, text="Full HD (1920x1080)", command=cambiar_resolucion_full_hd, width=20).pack(pady=5)
-tk.Button(frame_opciones, text="2K (2560x1440)", command=cambiar_resolucion_2k, width=20).pack(pady=5)
-tk.Button(frame_opciones, text="4K (3840x2160)", command=cambiar_resolucion_4k, width=20).pack(pady=5)
+tk.Button(frame_opciones, text="HD (1280x720)", command=lambda: root.geometry("1280x720"), width=20).pack(pady=5)
+tk.Button(frame_opciones, text="Full HD (1920x1080)", command=lambda: root.geometry("1920x1080"), width=20).pack(pady=5)
+tk.Button(frame_opciones, text="2K (2560x1440)", command=lambda: root.geometry("2560x1440"), width=20).pack(pady=5)
+tk.Button(frame_opciones, text="4K (3840x2160)", command=lambda: root.geometry("3840x2160"), width=20).pack(pady=5)
 
 # Botón de regresar
 tk.Button(frame_opciones, text="Regresar", command=mostrar_pantalla_inicio, width=20).pack(pady=10)
@@ -427,6 +532,11 @@ tk.Button(frame_linea_recta, text="Limpiar Gráfica", command=limpiar_grafica, b
 
 # Botón para regresar al menú
 tk.Button(frame_linea_recta, text="Regresar al Menú", command=mostrar_pantalla_inicio, bg="gray", fg="white").pack(pady=10)
+
+
+# Frame de tabla para la línea recta
+frame_tabla = tk.Frame(frame_linea_recta, pady=10)
+frame_tabla.pack(fill='both', expand=True)
 
 # Frame de triángulo
 frame_triangulo = tk.Frame(root, padx=20, pady=20, width=550, height=600)
@@ -512,6 +622,48 @@ frame_grafica = tk.Frame(root, padx=10, pady=10, bg='white')
 # Frame de tabla para la línea recta
 frame_tabla = tk.Frame(frame_linea_recta, pady=10)
 frame_tabla.pack(fill='both', expand=True)
+
+# Frame de círculo
+frame_circulo = tk.Frame(root, padx=20, pady=20, width=650, height=600)
+frame_circulo.pack_propagate(False)  # Evita que el frame se ajuste al contenido
+tk.Label(frame_circulo, text="Círculo - Método del Punto Medio", font=("Arial", 12, "bold")).pack(pady=5)
+
+# Frame para las entradas de Xc, Yc y R
+frame_entradas = tk.Frame(frame_circulo)
+frame_entradas.pack(pady=10)
+
+# Entrada para Xc
+tk.Label(frame_entradas, text="Xc:").grid(row=0, column=0, padx=5)
+entry_xc = tk.Entry(frame_entradas, width=10)
+entry_xc.grid(row=0, column=1, padx=5)
+
+# Entrada para Yc
+tk.Label(frame_entradas, text="Yc:").grid(row=0, column=2, padx=5)
+entry_yc = tk.Entry(frame_entradas, width=10)
+entry_yc.grid(row=0, column=3, padx=5)
+
+# Entrada para R
+tk.Label(frame_entradas, text="R:").grid(row=0, column=4, padx=5)
+entry_radio = tk.Entry(frame_entradas, width=10)
+entry_radio.grid(row=0, column=5, padx=5)
+
+# Frame para los botones
+frame_botones = tk.Frame(frame_circulo)
+frame_botones.pack(pady=10)
+
+# Botón para calcular y graficar el círculo
+tk.Button(frame_botones, text="Calcular Círculo", command=calcular_y_graficar_circulo, bg="orange", fg="white").grid(row=0, column=0, padx=5)
+
+# Botón para limpiar la pantalla
+tk.Button(frame_botones, text="Limpiar Pantalla", command=limpiar_grafica, bg="red", fg="white").grid(row=0, column=1, padx=5)
+# Frame de tabla para el círculo
+frame_tabla_circulo = tk.Frame(frame_circulo, pady=10)
+frame_tabla_circulo.pack(fill='both', expand=True)
+# Botón para regresar al menú
+tk.Button(frame_circulo, text="Regresar al Menú", command=mostrar_pantalla_inicio, bg="gray", fg="white").pack(pady=10)
+
+# Frame de gráfica
+frame_grafica = tk.Frame(root, padx=10, pady=10, bg='white')
 
 # Inicializar la gráfica vacía
 inicializar_grafica()
