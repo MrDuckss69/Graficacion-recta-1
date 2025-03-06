@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 colores_octantes = ['red', 'green', 'blue', 'orange', 'purple', 'brown', 'pink', 'gray']  # Lista global de colores
+# Variable global para el color de relleno del triángulo
+color_relleno_triangulo = 'red'
 
 # Función para inicializar la gráfica vacía
 def inicializar_grafica():
@@ -352,7 +354,7 @@ def calcular_y_graficar_triangulo():
         ax.legend()
 
         # Rellenar el triángulo
-        ax.fill([x1, x2, x3], [y1, y2, y3], color='red', alpha=0.5)
+        ax.fill([x1, x2, x3], [y1, y2, y3], color=color_relleno_triangulo, alpha=0.8)
 
         # Ajustar los límites de la gráfica
         min_x = min(x1, x2, x3)
@@ -416,6 +418,15 @@ def limpiar_grafica():
     # Limpiar las tablas de los octantes
     for widget in frame_tabla_circulo.winfo_children():
         widget.destroy()
+
+# Función para cambiar el color de relleno del triángulo
+def cambiar_color_triangulo():
+    global color_relleno_triangulo
+    color = colorchooser.askcolor(title="Seleccionar color de relleno")[1]
+    if color:
+        color_relleno_triangulo = color
+        calcular_y_graficar_triangulo()
+        
 
 # Función para hacer zoom manual
 def zoom_manual():
@@ -642,8 +653,26 @@ entry_x3.pack()
 entry_y3 = tk.Entry(frame_triangulo, width=10)
 entry_y3.pack()
 
-# Botón para calcular y graficar el triángulo
-tk.Button(frame_triangulo, text="Calcular Triángulo", command=calcular_y_graficar_triangulo, bg="purple", fg="white").pack(pady=10)
+# Frame para botones de cálculo y color
+frame_botones_triangulo = tk.Frame(frame_triangulo)
+frame_botones_triangulo.pack(pady=10)
+
+# Botones
+tk.Button(
+    frame_botones_triangulo, 
+    text="Calcular Triángulo", 
+    command=calcular_y_graficar_triangulo, 
+    bg="purple", 
+    fg="white"
+).pack(side='left', padx=5)
+
+tk.Button(
+    frame_botones_triangulo, 
+    text="Cambiar Color", 
+    command=cambiar_color_triangulo, 
+    bg="blue", 
+    fg="white"
+).pack(side='left', padx=5)
 
 # Etiquetas para mostrar las pendientes de las líneas del triángulo
 label_pendiente1 = tk.Label(frame_triangulo, text="Pendiente Línea 1 (m): ", font=("Arial", 10))
@@ -704,7 +733,7 @@ frame_tabla = tk.Frame(frame_linea_recta, pady=10)
 frame_tabla.pack(fill='both', expand=True)
 
 # Frame de círculo
-frame_circulo = tk.Frame(root, padx=20, pady=20, width=650, height=600)
+frame_circulo = tk.Frame(root, padx=20, pady=20, width=680, height=600)
 frame_circulo.pack_propagate(False)  # Evita que el frame se ajuste al contenido
 tk.Label(frame_circulo, text="Círculo - Método del Punto Medio", font=("Arial", 12, "bold")).pack(pady=5)
 
