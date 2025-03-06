@@ -1,7 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import colorchooser
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+colores_octantes = ['red', 'green', 'blue', 'orange', 'purple', 'brown', 'pink', 'gray']  # Lista global de colores
 
 # Función para inicializar la gráfica vacía
 def inicializar_grafica():
@@ -123,7 +126,7 @@ def calcular_y_graficar_circulo():
 
         # Inicializar listas para almacenar los puntos de cada octante
         octantes = [[] for _ in range(8)]
-        colores = ['red', 'green', 'blue', 'orange', 'purple', 'brown', 'pink', 'gray']
+        colores = colores_octantes  # Usar la lista global de colores
 
         # Algoritmo del Punto Medio para la Circunferencia
         x = 0
@@ -180,8 +183,18 @@ def mostrar_tablas_octantes(octantes, P0):
     frame_tablas.pack(fill='both', expand=True)
 
     # Función para crear una tabla
-    def crear_tabla(frame, datos, titulo, P0):
-        tabla_texto = tk.Text(frame, height=15, width=13, font=("Arial", 12))
+    def crear_tabla(frame, datos, titulo, P0, octante_idx):
+        frame_octante = tk.Frame(frame) 
+        # Botón para cambiar color
+        btn_color = tk.Button(
+            frame_octante, 
+            text=f"Color Octante {octante_idx + 1}", 
+            command=lambda idx=octante_idx: cambiar_color(idx),
+            bg=colores_octantes[octante_idx]  # Color de fondo del botón
+        )
+        btn_color.pack(pady=5)
+        
+        tabla_texto = tk.Text(frame_octante, height=10, width=13, font=("Arial", 12))
         tabla_texto.insert(tk.END, f"{titulo}\n")
         tabla_texto.insert(tk.END, f"P0 = {P0}\n")  # Mostrar P0
         tabla_texto.insert(tk.END, f"{'X':<10}{'Y':<10}\n")
@@ -191,7 +204,11 @@ def mostrar_tablas_octantes(octantes, P0):
                 tabla_texto.insert(tk.END, f"{x:<10}{y:<10}\n")
             tabla_texto.insert(tk.END, f"{'-'*20}\n")
         tabla_texto.config(state='disabled')
-        return tabla_texto
+
+        # Empacar el widget Text dentro del frame del octante
+        tabla_texto.pack(side='top', padx=10, pady=10)
+        return frame_octante  # Devuelves el frame completo con la tabla y el botón
+
 
     # Crear un frame para los primeros 4 octantes
     frame_arriba = tk.Frame(frame_tablas)
@@ -201,16 +218,79 @@ def mostrar_tablas_octantes(octantes, P0):
     frame_abajo = tk.Frame(frame_tablas)
     frame_abajo.pack(side='bottom', fill='both', expand=True)
 
-    # Mostrar los primeros 4 octantes
+    # Para los primeros 4 octantes
     for i in range(4):
-        tabla = crear_tabla(frame_arriba, octantes[i], f"Octante {i + 1}", P0)
+        tabla = crear_tabla(frame_arriba, octantes[i], f"Octante {i + 1}", P0, i)  # Pasar el índice 'i'
         tabla.pack(side='left', padx=10, pady=10)
 
-    # Mostrar los últimos 4 octantes
+    # Para los últimos 4 octantes
     for i in range(4, 8):
-        tabla = crear_tabla(frame_abajo, octantes[i], f"Octante {i + 1}", P0)
+        tabla = crear_tabla(frame_abajo, octantes[i], f"Octante {i + 1}", P0, i)  # Pasar el índice 'i'
         tabla.pack(side='left', padx=10, pady=10)
-        
+
+def cambiar_color(octante):
+    color = colorchooser.askcolor(title=f"Selecciona un color para el Octante {octante + 1}")[1]
+    if color:
+        colores_octantes[octante] = color  # Actualizar el color
+        calcular_y_graficar_circulo()  # Redibujar el círculo con el nuevo color
+
+def crear_botones_colores(frame):
+    for i in range(8):
+        btn = tk.Button(frame, text=f"Color Octante {i+1}", command=lambda i=i: cambiar_color(i))
+        btn.pack(side='left', padx=5, pady=5)
+
+def mover_circulo():
+    try:
+        global nuevo_xc, nuevo_yc
+        nuevo_xc = int(entry_nuevo_xc.get())
+        nuevo_yc = int(entry_nuevo_yc.get())
+        r = int(entry_radio.get())
+
+        ax.cla()
+        ax.set_title("Círculo Movido - Método del Punto Medio")
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.grid(True)
+        ax.set_aspect('equal', 'box')
+
+        octantes = [[] for _ in range(8)]
+        colores = colores_octantes  # Usar la lista global de colores
+
+        x = 0
+        y = r
+        P = 1 - r
+
+        while x <= y:
+            octantes[0].append((nuevo_xc + x, nuevo_yc + y))
+            octantes[1].append((nuevo_xc + y, nuevo_yc + x))
+            octantes[2].append((nuevo_xc + y, nuevo_yc - x))
+            octantes[3].append((nuevo_xc + x, nuevo_yc - y))
+            octantes[4].append((nuevo_xc - x, nuevo_yc - y))
+            octantes[5].append((nuevo_xc - y, nuevo_yc - x))
+            octantes[6].append((nuevo_xc - y, nuevo_yc + x))
+            octantes[7].append((nuevo_xc - x, nuevo_yc + y))
+
+            if P < 0:
+                P += 2 * x + 3
+            else:
+                P += 2 * (x - y) + 5
+                y -= 1
+            x += 1
+
+        for i, octante in enumerate(octantes):
+            x_vals = [p[0] for p in octante]
+            y_vals = [p[1] for p in octante]
+            ax.plot(x_vals, y_vals, marker='o', markersize=3, linestyle='None', color=colores[i])
+            ax.fill([nuevo_xc] + x_vals, [nuevo_yc] + y_vals, color=colores[i], alpha=0.3)
+
+        ax.set_xlim(nuevo_xc - r - 10, nuevo_xc + r + 10)
+        ax.set_ylim(nuevo_yc - r - 10, nuevo_yc + r + 10)
+
+        canvas.draw()
+
+    except ValueError:
+        messagebox.showerror("Error", "Por favor, ingresa valores numéricos válidos.")
+
 # Función para calcular y graficar un triángulo relleno
 def calcular_y_graficar_triangulo():
     try:
@@ -656,14 +736,60 @@ tk.Button(frame_botones, text="Calcular Círculo", command=calcular_y_graficar_c
 
 # Botón para limpiar la pantalla
 tk.Button(frame_botones, text="Limpiar Pantalla", command=limpiar_grafica, bg="red", fg="white").grid(row=0, column=1, padx=5)
+
+# Agregar entradas y botón para mover el círculo
+tk.Label(frame_circulo, text="Mover Círculo a Nueva Posición", font=("Arial", 12, "bold")).pack(pady=10)
+frame_mover_circulo = tk.Frame(frame_circulo)
+frame_mover_circulo.pack(pady=5)
+
+# Entrada para nueva Xc
+tk.Label(frame_mover_circulo, text="Nuevo Xc:").grid(row=0, column=0, padx=5)
+entry_nuevo_xc = tk.Entry(frame_mover_circulo, width=10)
+entry_nuevo_xc.grid(row=0, column=1, padx=5)
+
+# Entrada para nueva Yc
+tk.Label(frame_mover_circulo, text="Nuevo Yc:").grid(row=0, column=2, padx=5)
+entry_nuevo_yc = tk.Entry(frame_mover_circulo, width=10)
+entry_nuevo_yc.grid(row=0, column=3, padx=5)
+
+# Botón para mover el círculo
+tk.Button(frame_mover_circulo, text="Mover Círculo", command=mover_circulo, bg="blue", fg="white").grid(row=0, column=4, padx=5)
+
+# Agregar controles de zoom
+tk.Label(frame_circulo, text="Zoom Manual", font=("Arial", 12, "bold")).pack(pady=10)
+frame_zoom = tk.Frame(frame_circulo)
+frame_zoom.pack(pady=5)
+
+# Entradas de zoom
+tk.Label(frame_zoom, text="X Min:").grid(row=0, column=0, padx=5)
+entry_lim_x_min = tk.Entry(frame_zoom, width=10)
+entry_lim_x_min.grid(row=0, column=1, padx=5)
+
+tk.Label(frame_zoom, text="X Max:").grid(row=0, column=2, padx=5)
+entry_lim_x_max = tk.Entry(frame_zoom, width=10)
+entry_lim_x_max.grid(row=0, column=3, padx=5)
+
+tk.Label(frame_zoom, text="Y Min:").grid(row=1, column=0, padx=5)
+entry_lim_y_min = tk.Entry(frame_zoom, width=10)
+entry_lim_y_min.grid(row=1, column=1, padx=5)
+
+tk.Label(frame_zoom, text="Y Max:").grid(row=1, column=2, padx=5)
+entry_lim_y_max = tk.Entry(frame_zoom, width=10)
+entry_lim_y_max.grid(row=1, column=3, padx=5)
+
+# Botón de zoom
+tk.Button(frame_zoom, text="Aplicar Zoom", command=zoom_manual, bg="blue", fg="white").grid(row=2, column=1, columnspan=2, pady=5)
+
 # Frame de tabla para el círculo
 frame_tabla_circulo = tk.Frame(frame_circulo, pady=10)
 frame_tabla_circulo.pack(fill='both', expand=True)
+
 # Botón para regresar al menú
 tk.Button(frame_circulo, text="Regresar al Menú", command=mostrar_pantalla_inicio, bg="gray", fg="white").pack(pady=10)
 
 # Frame de gráfica
 frame_grafica = tk.Frame(root, padx=10, pady=10, bg='white')
+
 
 # Inicializar la gráfica vacía
 inicializar_grafica()
