@@ -196,7 +196,7 @@ def mostrar_tablas_octantes(octantes, P0):
         )
         btn_color.pack(pady=5)
         
-        tabla_texto = tk.Text(frame_octante, height=10, width=13, font=("Arial", 12))
+        tabla_texto = tk.Text(frame_octante, height=8, width=13, font=("Arial", 12))
         tabla_texto.insert(tk.END, f"{titulo}\n")
         tabla_texto.insert(tk.END, f"P0 = {P0}\n")  # Mostrar P0
         tabla_texto.insert(tk.END, f"{'X':<10}{'Y':<10}\n")
@@ -795,7 +795,7 @@ entry_lim_x_min.grid(row=0, column=1, padx=5)
 tk.Label(frame_zoom, text="X Max:").grid(row=0, column=2, padx=5)
 entry_lim_x_max = tk.Entry(frame_zoom, width=10)
 entry_lim_x_max.grid(row=0, column=3, padx=5)
-
+ 
 tk.Label(frame_zoom, text="Y Min:").grid(row=1, column=0, padx=5)
 entry_lim_y_min = tk.Entry(frame_zoom, width=10)
 entry_lim_y_min.grid(row=1, column=1, padx=5)
